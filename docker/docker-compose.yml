@@ -1,0 +1,9 @@
+version: '3'
+services:
+  mongo-service:
+    container_name: cz-realestate-mongo
+    image: mongo
+    ports:
+      - 51999:27017
+    volumes:
+      - "~/.cz_realestate/mongo:/data/db"
