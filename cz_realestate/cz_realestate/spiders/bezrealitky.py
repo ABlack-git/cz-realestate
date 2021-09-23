@@ -84,9 +84,13 @@ class BezrealitkyPragueRentSpider(scrapy.Spider):
 
     def _process_info_table(self, response) -> dict:
         info_dict = {}
-        for table_entry in response.xpath('.//table[@class="table"]/tbody/tr'):
+        table_entries = response.xpath('.//h2[text()="Specifications"]/following-sibling::table/tbody/tr')
+        for table_entry in table_entries:
             apartment_info_key = table_entry.xpath('th/text()').get().strip(':')
-            value = table_entry.xpath('td/text()').get()
+            if apartment_info_key == 'Project name':
+                value = table_entry.xpath('td/a/text()').get()
+            else:
+                value = table_entry.xpath('td/text()').get()
             if apartment_info_key in INFO_MAPPING:
                 try:
                     info_type = INFO_MAPPING[apartment_info_key]
