@@ -1,8 +1,10 @@
 import scrapy
+from urllib.parse import urlencode
+import unicodedata
+
 from ..items import BezrealitkyFlatItem, Coordinates
 from ..enums import INFO_MAPPING, ApartmentInfo, LAYOUT_MAPPING
 from ..entities import BezrealitkyListing
-from urllib.parse import urlencode
 
 
 class BezrealitkyPragueRentSpider(scrapy.Spider):
@@ -101,7 +103,10 @@ class BezrealitkyPragueRentSpider(scrapy.Spider):
                     self.logger.warning(f"Skipping processing of {apartment_info_key}")
             else:
                 self.logger.warning(f"{apartment_info_key} key is not known")
-                info_dict[apartment_info_key.lower().replace(' ', '_')] = value
+                key = apartment_info_key.lower().replace(' ', '_')
+                # remove any diacritic
+                key = ''.join(c for c in unicodedata.normalize('NFD', key) if not unicodedata.combining(c))
+                info_dict[key] = value
 
         return info_dict
 
