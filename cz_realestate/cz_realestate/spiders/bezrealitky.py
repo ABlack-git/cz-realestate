@@ -73,9 +73,8 @@ class BezrealitkyPragueRentSpider(scrapy.Spider):
         flat_item.listing_id = kwargs['listing_id']
         flat_item.uri = kwargs['uri']
 
-        flat_item.title = response.xpath('.//h1[contains(@class, "heading__title")]/span/text()').get()
-        flat_item.sub_title = response.xpath('.//h1[contains(@class,"heading__title")]'
-                                             '/span[contains(@class, "heading__perex")]/text()').get().strip()
+        flat_item.title = response.xpath('.//h1/text()').get()
+        flat_item.sub_title = response.xpath('.//h1/following-sibling::h2/text()').get().strip()
 
         lng = float(response.xpath('.//div[contains(@class, b-map)]/@data-lng').get())
         lat = float(response.xpath('.//div[contains(@class, b-map)]/@data-lat').get())
@@ -86,13 +85,15 @@ class BezrealitkyPragueRentSpider(scrapy.Spider):
 
     def _process_info_table(self, response) -> dict:
         info_dict = {}
-        table_entries = response.xpath('.//h2[text()="Specifications"]/following-sibling::table/tbody/tr')
+        table_entries = response.xpath('.//div[@id="detail-parameters"]//div[contains(@class,"col-12")]')
         for table_entry in table_entries:
-            apartment_info_key = table_entry.xpath('th/text()').get().strip(':')
-            if apartment_info_key == 'Project name':
-                value = table_entry.xpath('td/a/text()').get()
-            else:
-                value = table_entry.xpath('td/text()').get()
+            apartment_info_key = table_entry.xpath('div/div[contains(@class, "param-title")]/text()').get()
+            value = table_entry.xpath('div/div[contains(@class, "param-value")]/text()').get()
+            if apartment_info_key is None or value is None:
+                continue
+            apartment_info_key = apartment_info_key.strip()
+            value = value.strip()
+
             if apartment_info_key in INFO_MAPPING:
                 try:
                     info_type = INFO_MAPPING[apartment_info_key]
